@@ -1,0 +1,621 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ner_module package &mdash; NER Module 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            NER Module
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="llm_client.html">LLM Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prompts.html">Prompts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NER Module</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ner_module package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ner_module.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ner-module-package">
+<h1>ner_module package<a class="headerlink" href="#ner-module-package" title="Link to this heading"></a></h1>
+<section id="module-ner_module.config">
+<span id="ner-module-config-module"></span><h2>ner_module.config module<a class="headerlink" href="#module-ner_module.config" title="Link to this heading"></a></h2>
+</section>
+<section id="module-ner_module.llm_client">
+<span id="ner-module-llm-client-module"></span><h2>ner_module.llm_client module<a class="headerlink" href="#module-ner_module.llm_client" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.llm_client.NER">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.llm_client.</span></span><span class="sig-name descname"><span class="pre">NER</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SecretStr</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'openai'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gpt-4o-mini'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.llm_client.NER" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is the Named Entity Recognition (NER) class.</p>
+<p>In this class, we define the methods and attributes necessary for performing NER tasks using a language model.
+The prompts defined in the prompts module are used to guide the model’s behavior.
+In addition, utilizing a tool manager allows for better organization and management of the various tools that can be used during the NER process.</p>
+<p>The tools manager is responsible for registering, unregistering, and retrieving tools as needed throughout the NER workflow.
+It is possible to change the parameters of the NER class after it has been initialized.</p>
+<p>Is also possible to change the parameters of the model being used for NER tasks using the <cite>set_model_params</cite> method.
+To retrieve the model parameters, you can use the <cite>get_model_params</cite> method.</p>
+<p>The <cite>chat</cite> method is responsible for processing user input and generating a structured response based on the defined NER tasks and prompts.
+The base_model is used to define the structure of the expected output. In this way, it ensures that the model’s responses adhere to the specified format.
+The tasks defined the entities to be recognized. These tasks guide the model in understanding what specific information needs to be extracted from the user input.
+If a tool_manager is provided, it can be used to access additional tools and resources that may be helpful during the NER process. In this case, the tool_manager
+can be utilized to enhance the capabilities of the NER class by providing access to external tools and APIs that can assist in the recognition and extraction of entities.
+The extra_info parameter can be used to pass any additional context or information that may be relevant to the NER process. It is directly incorporated into the
+prompt context.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.llm_client.NER.base_model_selector">
+<span class="sig-name descname"><span class="pre">base_model_selector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseModel</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseModel</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.base_model_selector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.llm_client.NER.base_model_selector" title="Link to this definition"></a></dt>
+<dd><p>Given a set of BaseModel, select the most appropriate one based on the input text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_models</strong> – A list of BaseModel classes to choose from.</p></li>
+<li><p><strong>text</strong> – The input text to analyze.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The most appropriate BaseModel class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.llm_client.NER.chat">
+<span class="sig-name descname"><span class="pre">chat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseModel</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tools_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tools.html#ner_module.tools.ToolsManager" title="ner_module.tools.ToolsManager"><span class="pre">ToolsManager</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ask_missing_params_with_llm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_raw_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.chat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.llm_client.NER.chat" title="Link to this definition"></a></dt>
+<dd><p>Process user text to extract structured information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> – Input text to process</p></li>
+<li><p><strong>tasks</strong> – List of possible tasks</p></li>
+<li><p><strong>base_model</strong> – Pydantic model class to use for structured output</p></li>
+<li><p><strong>tools_manager</strong> – Manager for additional tools</p></li>
+<li><p><strong>extra_info</strong> – Additional information to include inside the prompt</p></li>
+<li><p><strong>ask_missing_params_with_llm</strong> – If True, the questions are generated by the LLM, otherwise use default questions.</p></li>
+<li><p><strong>user_inputs</strong> – Dict of answers requested due to missing parameters or additional information.</p></li>
+<li><p><strong>return_raw_result</strong> – If True, returns NERResult object instead of just data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Processed result as string/None or NERResult object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.llm_client.NER.detect_multiactivities">
+<span class="sig-name descname"><span class="pre">detect_multiactivities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'No</span> <span class="pre">other</span> <span class="pre">examples</span> <span class="pre">available'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.detect_multiactivities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.llm_client.NER.detect_multiactivities" title="Link to this definition"></a></dt>
+<dd><p>Detect multiple activities in the text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> – The input text to analyze.</p></li>
+<li><p><strong>prompt</strong> – The prompt to use for the LLM. Use specific prompt for multi-activity detection only for particular cases, otherwise use the default prompt.</p></li>
+<li><p><strong>examples</strong> – Additional examples to provide context for the LLM. Not needed if prompt is provided.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of detected activities.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.llm_client.NER.get_model_params">
+<span class="sig-name descname"><span class="pre">get_model_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.get_model_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.llm_client.NER.get_model_params" title="Link to this definition"></a></dt>
+<dd><p>Get the current model parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the model name and temperature.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.llm_client.NER.health_check">
+<span class="sig-name descname"><span class="pre">health_check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.health_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.llm_client.NER.health_check" title="Link to this definition"></a></dt>
+<dd><p>Performs a health check of the NER system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the health check results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.llm_client.NER.set_model_params">
+<span class="sig-name descname"><span class="pre">set_model_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'openai'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gpt-4o-mini'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.set_model_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.llm_client.NER.set_model_params" title="Link to this definition"></a></dt>
+<dd><p>Set the model parameters for the NER instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_name</strong> – The name of the model to use.</p></li>
+<li><p><strong>temperature</strong> – The temperature to use for sampling.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ner_module.prompts">
+<span id="ner-module-prompts-module"></span><h2>ner_module.prompts module<a class="headerlink" href="#module-ner_module.prompts" title="Link to this heading"></a></h2>
+</section>
+<section id="module-ner_module.tools">
+<span id="ner-module-tools-module"></span><h2>ner_module.tools module<a class="headerlink" href="#module-ner_module.tools" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.tools.</span></span><span class="sig-name descname"><span class="pre">ToolsManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bearer_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is designed to manage and organize tools for the application.
+With tools we mean functions or methods that can be used to perform specific tasks.
+These tools can be called by the LLM agent to perform actions based on user input.</p>
+<p>With tools the LLM agent can extend its capabilities and interact with the entire system more effectively.</p>
+<p>For example, a tool could include a function to query a database, call an external API, or perform complex calculations.
+In this way, the LLM call can leverage these tools to perform actions that require external knowledge or capabilities.</p>
+<p><strong>IMPORTANT</strong>: Each function or tool function that is added as a tool must be commented with its purpose and usage. This is <strong>ESSENTIAL</strong>
+for the correct calling of the tool by the agent. In case the function is not properly documented, the agent will throw an error.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager.add_fn_to_tools">
+<span class="sig-name descname"><span class="pre">add_fn_to_tools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.add_fn_to_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager.add_fn_to_tools" title="Link to this definition"></a></dt>
+<dd><p>Adds a function as a tool to the tools manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Params fn<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The function to add. Performs the same logic of the <cite>fn_to_tool_fn</cite> method, but the function is added directly in the tools list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager.add_tools">
+<span class="sig-name descname"><span class="pre">add_tools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseTool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.add_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager.add_tools" title="Link to this definition"></a></dt>
+<dd><p>Adds a tool to the tools manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tool</strong> – The tool to add. Is a function or method that performs a specific task, that has been wrapped as a BaseTool using the <cite>tool</cite> decorator.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager.clear_tools">
+<span class="sig-name descname"><span class="pre">clear_tools</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.clear_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager.clear_tools" title="Link to this definition"></a></dt>
+<dd><p>Clears all tools from the tools manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager.fn_to_tool_fn">
+<span class="sig-name descname"><span class="pre">fn_to_tool_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BaseTool</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.fn_to_tool_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager.fn_to_tool_fn" title="Link to this definition"></a></dt>
+<dd><p>Converts a function to a tool function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Params fn<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The function to convert. In this way, the function will be wrapped as a BaseTool using the <cite>tool</cite> decorator.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager.get_tool_by_name">
+<span class="sig-name descname"><span class="pre">get_tool_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BaseTool</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.get_tool_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager.get_tool_by_name" title="Link to this definition"></a></dt>
+<dd><p>Returns a tool from the tools manager by its name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – The name of the tool to retrieve.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The tool with the specified name, or None if not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager.get_tools">
+<span class="sig-name descname"><span class="pre">get_tools</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseTool</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.get_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager.get_tools" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of all tools in the tools manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.tools.ToolsManager.remove_tools">
+<span class="sig-name descname"><span class="pre">remove_tools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseTool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.remove_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.tools.ToolsManager.remove_tools" title="Link to this definition"></a></dt>
+<dd><p>Removes a tool from the tools manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tool</strong> – The tool to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ner_module.utils">
+<span id="ner-module-utils-module"></span><h2>ner_module.utils module<a class="headerlink" href="#module-ner_module.utils" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.utils.BaseModelSelector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.utils.</span></span><span class="sig-name descname"><span class="pre">BaseModelSelector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/utils.html#BaseModelSelector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.BaseModelSelector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.BaseModelSelector.idx">
+<span class="sig-name descname"><span class="pre">idx</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#ner_module.utils.BaseModelSelector.idx" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.BaseModelSelector.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#ner_module.utils.BaseModelSelector.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.utils.MultiActivity">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.utils.</span></span><span class="sig-name descname"><span class="pre">MultiActivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/utils.html#MultiActivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.MultiActivity" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.MultiActivity.activities">
+<span class="sig-name descname"><span class="pre">activities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ner_module.utils.MultiActivity.activities" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.MultiActivity.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#ner_module.utils.MultiActivity.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="ner_module.utils.NERError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.utils.</span></span><span class="sig-name descname"><span class="pre">NERError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'general'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/utils.html#NERError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.NERError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Custom exception for NER errors</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.utils.NERMissingParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.utils.</span></span><span class="sig-name descname"><span class="pre">NERMissingParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/utils.html#NERMissingParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.NERMissingParameters" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.NERMissingParameters.missing_params">
+<span class="sig-name descname"><span class="pre">missing_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ner_module.utils.NERMissingParameters.missing_params" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.NERMissingParameters.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#ner_module.utils.NERMissingParameters.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.utils.NERResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.utils.</span></span><span class="sig-name descname"><span class="pre">NERResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ok'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">questions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="utils.html#ner_module.utils.ProcessingMode" title="ner_module.utils.ProcessingMode"><span class="pre">ProcessingMode</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/utils.html#NERResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.NERResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.utils.NERResult.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/utils.html#NERResult.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.NERResult.to_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.utils.ProcessingMode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.utils.</span></span><span class="sig-name descname"><span class="pre">ProcessingMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/utils.html#ProcessingMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.ProcessingMode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Enum to define different processing modes for the NER system</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.ProcessingMode.AGENT_WITH_TOOLS">
+<span class="sig-name descname"><span class="pre">AGENT_WITH_TOOLS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'agent_with_tools'</span></em><a class="headerlink" href="#ner_module.utils.ProcessingMode.AGENT_WITH_TOOLS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.ProcessingMode.DIRECT_STRUCTURED">
+<span class="sig-name descname"><span class="pre">DIRECT_STRUCTURED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'direct_structured'</span></em><a class="headerlink" href="#ner_module.utils.ProcessingMode.DIRECT_STRUCTURED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ner_module.utils.ProcessingMode.DIRECT_UNSTRUCTURED">
+<span class="sig-name descname"><span class="pre">DIRECT_UNSTRUCTURED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'direct_unstructured'</span></em><a class="headerlink" href="#ner_module.utils.ProcessingMode.DIRECT_UNSTRUCTURED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="ner_module.utils.ToolError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.utils.</span></span><span class="sig-name descname"><span class="pre">ToolError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tool_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/utils.html#ToolError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.utils.ToolError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-ner_module">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ner_module" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.NER">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.</span></span><span class="sig-name descname"><span class="pre">NER</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SecretStr</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'openai'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gpt-4o-mini'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.NER" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is the Named Entity Recognition (NER) class.</p>
+<p>In this class, we define the methods and attributes necessary for performing NER tasks using a language model.
+The prompts defined in the prompts module are used to guide the model’s behavior.
+In addition, utilizing a tool manager allows for better organization and management of the various tools that can be used during the NER process.</p>
+<p>The tools manager is responsible for registering, unregistering, and retrieving tools as needed throughout the NER workflow.
+It is possible to change the parameters of the NER class after it has been initialized.</p>
+<p>Is also possible to change the parameters of the model being used for NER tasks using the <cite>set_model_params</cite> method.
+To retrieve the model parameters, you can use the <cite>get_model_params</cite> method.</p>
+<p>The <cite>chat</cite> method is responsible for processing user input and generating a structured response based on the defined NER tasks and prompts.
+The base_model is used to define the structure of the expected output. In this way, it ensures that the model’s responses adhere to the specified format.
+The tasks defined the entities to be recognized. These tasks guide the model in understanding what specific information needs to be extracted from the user input.
+If a tool_manager is provided, it can be used to access additional tools and resources that may be helpful during the NER process. In this case, the tool_manager
+can be utilized to enhance the capabilities of the NER class by providing access to external tools and APIs that can assist in the recognition and extraction of entities.
+The extra_info parameter can be used to pass any additional context or information that may be relevant to the NER process. It is directly incorporated into the
+prompt context.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.NER.base_model_selector">
+<span class="sig-name descname"><span class="pre">base_model_selector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseModel</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseModel</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.base_model_selector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.NER.base_model_selector" title="Link to this definition"></a></dt>
+<dd><p>Given a set of BaseModel, select the most appropriate one based on the input text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_models</strong> – A list of BaseModel classes to choose from.</p></li>
+<li><p><strong>text</strong> – The input text to analyze.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The most appropriate BaseModel class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.NER.chat">
+<span class="sig-name descname"><span class="pre">chat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tasks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseModel</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tools_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tools.html#ner_module.tools.ToolsManager" title="ner_module.tools.ToolsManager"><span class="pre">ToolsManager</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ask_missing_params_with_llm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_raw_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.chat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.NER.chat" title="Link to this definition"></a></dt>
+<dd><p>Process user text to extract structured information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> – Input text to process</p></li>
+<li><p><strong>tasks</strong> – List of possible tasks</p></li>
+<li><p><strong>base_model</strong> – Pydantic model class to use for structured output</p></li>
+<li><p><strong>tools_manager</strong> – Manager for additional tools</p></li>
+<li><p><strong>extra_info</strong> – Additional information to include inside the prompt</p></li>
+<li><p><strong>ask_missing_params_with_llm</strong> – If True, the questions are generated by the LLM, otherwise use default questions.</p></li>
+<li><p><strong>user_inputs</strong> – Dict of answers requested due to missing parameters or additional information.</p></li>
+<li><p><strong>return_raw_result</strong> – If True, returns NERResult object instead of just data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Processed result as string/None or NERResult object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.NER.detect_multiactivities">
+<span class="sig-name descname"><span class="pre">detect_multiactivities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'No</span> <span class="pre">other</span> <span class="pre">examples</span> <span class="pre">available'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.detect_multiactivities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.NER.detect_multiactivities" title="Link to this definition"></a></dt>
+<dd><p>Detect multiple activities in the text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> – The input text to analyze.</p></li>
+<li><p><strong>prompt</strong> – The prompt to use for the LLM. Use specific prompt for multi-activity detection only for particular cases, otherwise use the default prompt.</p></li>
+<li><p><strong>examples</strong> – Additional examples to provide context for the LLM. Not needed if prompt is provided.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of detected activities.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.NER.get_model_params">
+<span class="sig-name descname"><span class="pre">get_model_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.get_model_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.NER.get_model_params" title="Link to this definition"></a></dt>
+<dd><p>Get the current model parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the model name and temperature.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.NER.health_check">
+<span class="sig-name descname"><span class="pre">health_check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.health_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.NER.health_check" title="Link to this definition"></a></dt>
+<dd><p>Performs a health check of the NER system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the health check results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.NER.set_model_params">
+<span class="sig-name descname"><span class="pre">set_model_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'openai'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gpt-4o-mini'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/llm_client.html#NER.set_model_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.NER.set_model_params" title="Link to this definition"></a></dt>
+<dd><p>Set the model parameters for the NER instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_name</strong> – The name of the model to use.</p></li>
+<li><p><strong>temperature</strong> – The temperature to use for sampling.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ner_module.ToolsManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ner_module.</span></span><span class="sig-name descname"><span class="pre">ToolsManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bearer_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is designed to manage and organize tools for the application.
+With tools we mean functions or methods that can be used to perform specific tasks.
+These tools can be called by the LLM agent to perform actions based on user input.</p>
+<p>With tools the LLM agent can extend its capabilities and interact with the entire system more effectively.</p>
+<p>For example, a tool could include a function to query a database, call an external API, or perform complex calculations.
+In this way, the LLM call can leverage these tools to perform actions that require external knowledge or capabilities.</p>
+<p><strong>IMPORTANT</strong>: Each function or tool function that is added as a tool must be commented with its purpose and usage. This is <strong>ESSENTIAL</strong>
+for the correct calling of the tool by the agent. In case the function is not properly documented, the agent will throw an error.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.ToolsManager.add_fn_to_tools">
+<span class="sig-name descname"><span class="pre">add_fn_to_tools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.add_fn_to_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager.add_fn_to_tools" title="Link to this definition"></a></dt>
+<dd><p>Adds a function as a tool to the tools manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Params fn<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The function to add. Performs the same logic of the <cite>fn_to_tool_fn</cite> method, but the function is added directly in the tools list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.ToolsManager.add_tools">
+<span class="sig-name descname"><span class="pre">add_tools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseTool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.add_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager.add_tools" title="Link to this definition"></a></dt>
+<dd><p>Adds a tool to the tools manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tool</strong> – The tool to add. Is a function or method that performs a specific task, that has been wrapped as a BaseTool using the <cite>tool</cite> decorator.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.ToolsManager.clear_tools">
+<span class="sig-name descname"><span class="pre">clear_tools</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.clear_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager.clear_tools" title="Link to this definition"></a></dt>
+<dd><p>Clears all tools from the tools manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.ToolsManager.fn_to_tool_fn">
+<span class="sig-name descname"><span class="pre">fn_to_tool_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BaseTool</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.fn_to_tool_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager.fn_to_tool_fn" title="Link to this definition"></a></dt>
+<dd><p>Converts a function to a tool function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Params fn<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The function to convert. In this way, the function will be wrapped as a BaseTool using the <cite>tool</cite> decorator.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.ToolsManager.get_tool_by_name">
+<span class="sig-name descname"><span class="pre">get_tool_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BaseTool</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.get_tool_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager.get_tool_by_name" title="Link to this definition"></a></dt>
+<dd><p>Returns a tool from the tools manager by its name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – The name of the tool to retrieve.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The tool with the specified name, or None if not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.ToolsManager.get_tools">
+<span class="sig-name descname"><span class="pre">get_tools</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">BaseTool</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.get_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager.get_tools" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of all tools in the tools manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ner_module.ToolsManager.remove_tools">
+<span class="sig-name descname"><span class="pre">remove_tools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseTool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/ner_module/tools.html#ToolsManager.remove_tools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ner_module.ToolsManager.remove_tools" title="Link to this definition"></a></dt>
+<dd><p>Removes a tool from the tools manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tool</strong> – The tool to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Eddy Frighetto.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

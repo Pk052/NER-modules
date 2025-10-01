@@ -1,0 +1,843 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ner_module.llm_client &mdash; NER Module 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            NER Module
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../llm_client.html">LLM Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../prompts.html">Prompts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">NER Module</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ner_module.llm_client</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ner_module.llm_client</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pycountry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">SecretStr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatOpenAI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_anthropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatAnthropic</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_ollama</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatOllama</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_huggingface</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatHuggingFace</span><span class="p">,</span> <span class="n">HuggingFaceEndpoint</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">SystemMessage</span><span class="p">,</span> <span class="n">HumanMessage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangChainException</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">initialize_agent</span><span class="p">,</span> <span class="n">AgentType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langdetect</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROVIDER</span><span class="p">,</span> <span class="n">MODEL_NAME</span><span class="p">,</span> <span class="n">TEMPERATURE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.prompts</span><span class="w"> </span><span class="kn">import</span> <span class="n">SYS_PROMPT</span><span class="p">,</span> <span class="n">PROMPT</span><span class="p">,</span> <span class="n">PROMPT_PARAMS_RECOVERY</span><span class="p">,</span> <span class="n">PROMPT_PARAMETER_ASKING</span><span class="p">,</span> <span class="n">PROMPT_BASE_MODEL_SELECTOR</span><span class="p">,</span> <span class="n">PROMPT_TYPE_CASTING</span><span class="p">,</span> <span class="n">PROMPT_MULTIACTIVITY</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolsManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">NERMissingParameters</span><span class="p">,</span> <span class="n">NERError</span><span class="p">,</span> <span class="n">NERResult</span><span class="p">,</span> <span class="n">ProcessingMode</span><span class="p">,</span> <span class="n">BaseModelSelector</span><span class="p">,</span> <span class="n">MultiActivity</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NER">
+<a class="viewcode-back" href="../../ner_module.html#ner_module.llm_client.NER">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NER</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the Named Entity Recognition (NER) class.</span>
+
+<span class="sd">    In this class, we define the methods and attributes necessary for performing NER tasks using a language model.</span>
+<span class="sd">    The prompts defined in the prompts module are used to guide the model&#39;s behavior.</span>
+<span class="sd">    In addition, utilizing a tool manager allows for better organization and management of the various tools that can be used during the NER process.</span>
+
+<span class="sd">    The tools manager is responsible for registering, unregistering, and retrieving tools as needed throughout the NER workflow.</span>
+<span class="sd">    It is possible to change the parameters of the NER class after it has been initialized.</span>
+
+<span class="sd">    Is also possible to change the parameters of the model being used for NER tasks using the `set_model_params` method.</span>
+<span class="sd">    To retrieve the model parameters, you can use the `get_model_params` method.</span>
+
+<span class="sd">    The `chat` method is responsible for processing user input and generating a structured response based on the defined NER tasks and prompts.</span>
+<span class="sd">    The base_model is used to define the structure of the expected output. In this way, it ensures that the model&#39;s responses adhere to the specified format.</span>
+<span class="sd">    The tasks defined the entities to be recognized. These tasks guide the model in understanding what specific information needs to be extracted from the user input.</span>
+<span class="sd">    If a tool_manager is provided, it can be used to access additional tools and resources that may be helpful during the NER process. In this case, the tool_manager</span>
+<span class="sd">    can be utilized to enhance the capabilities of the NER class by providing access to external tools and APIs that can assist in the recognition and extraction of entities.</span>
+<span class="sd">    The extra_info parameter can be used to pass any additional context or information that may be relevant to the NER process. It is directly incorporated into the </span>
+<span class="sd">    prompt context.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">api_key</span><span class="p">:</span> <span class="n">SecretStr</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;openai&quot;</span><span class="p">,</span>
+        <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">MODEL_NAME</span><span class="p">,</span>
+        <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">TEMPERATURE</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">=</span> <span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">if</span> <span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_allowed_providers</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;openai&quot;</span> <span class="c1"># Default provider (change in config.py)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span> <span class="c1"># Default model name (change in config.py)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">temperature</span> <span class="c1"># Default temperature (change in config.py)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">api_key</span> <span class="c1"># api_key to access OpenAI API</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="o">=</span> <span class="s2">&quot;English&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_model</span><span class="p">()</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the NER model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Initializing the model with parameters</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;openai&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span>
+                    <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                    <span class="n">temperature</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+                    <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">:</span>
+                <span class="n">llm</span> <span class="o">=</span> <span class="n">HuggingFaceEndpoint</span><span class="p">(</span>
+                    <span class="n">repo_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                    <span class="n">task</span><span class="o">=</span><span class="s2">&quot;text-generation&quot;</span><span class="p">,</span>
+                    <span class="n">temperature</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+                    <span class="n">huggingfacehub_api_token</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">ChatHuggingFace</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">llm</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;anthropic&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">ChatAnthropic</span><span class="p">(</span>
+                    <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                    <span class="n">temperature</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+                    <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;ollama&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">ChatOllama</span><span class="p">(</span>
+                    <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                    <span class="n">temperature</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">NERError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Provider </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="si">}</span><span class="s2"> is not supported. Supported providers are: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_allowed_providers</span><span class="p">())</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                    <span class="n">error_type</span><span class="o">=</span><span class="s2">&quot;initialization&quot;</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NERError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to initialize model with name </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">error_type</span><span class="o">=</span><span class="s2">&quot;initialization&quot;</span><span class="p">,</span>
+                <span class="n">original_error</span><span class="o">=</span><span class="n">e</span>
+            <span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_allowed_providers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="s2">&quot;anthropic&quot;</span><span class="p">,</span> <span class="s2">&quot;ollama&quot;</span><span class="p">,</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_determine_processing_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_model</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">],</span> <span class="n">tools_manager</span><span class="p">:</span> <span class="n">ToolsManager</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProcessingMode</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine the processing mode based on the presence of tools and the base model.</span>
+<span class="sd">        </span>
+<span class="sd">        :param base_model: The base model class to use for structured output.</span>
+<span class="sd">        :param tools_manager: The tools manager instance to use for agent-based processing.</span>
+<span class="sd">        :return: The determined processing mode (unstructured, structured, or agentic)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tools_manager</span> <span class="ow">and</span> <span class="n">tools_manager</span><span class="o">.</span><span class="n">get_tools</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="s2">&quot;anthropic&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">ProcessingMode</span><span class="o">.</span><span class="n">AGENT_WITH_TOOLS</span>
+        <span class="k">elif</span> <span class="n">base_model</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_UNSTRUCTURED</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_messages</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+        <span class="n">tasks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
+        <span class="n">base_model</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">],</span> 
+        <span class="n">tools_manager</span><span class="p">:</span> <span class="n">ToolsManager</span><span class="p">,</span> 
+        <span class="n">extra_info</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Prepare messages for model/agent. </span>
+
+<span class="sd">        :param text: The input text to process.</span>
+<span class="sd">        :param tasks: The list of tasks to perform.</span>
+<span class="sd">        :param base_model: The base model class to use for structured output.</span>
+<span class="sd">        :param tools_manager: The tools manager instance to use for agent-based processing.</span>
+<span class="sd">        :param extra_info: Any extra information to include in the prompt.</span>
+
+<span class="sd">        :return: The prepared messages for the model/agent.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tasks_formatted</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> -&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+
+            <span class="n">schema_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">parameter_desc</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">base_model</span><span class="p">:</span>
+                <span class="n">schema_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                    <span class="n">base_model</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">(),</span>
+                    <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">indent</span><span class="o">=</span><span class="mi">2</span>
+                <span class="p">)</span>
+                <span class="n">parameter_desc</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">field</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">base_model</span><span class="o">.</span><span class="n">model_fields</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">)</span>
+            
+            <span class="n">tools_descr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">tools_manager</span><span class="p">:</span>
+                <span class="n">tools</span> <span class="o">=</span> <span class="n">tools_manager</span><span class="o">.</span><span class="n">get_tools</span><span class="p">()</span>
+                <span class="n">tools_descr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">tool</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">)</span>
+
+            <span class="n">sys_prompt</span> <span class="o">=</span> <span class="n">SYS_PROMPT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">tasks</span><span class="o">=</span><span class="n">tasks_formatted</span><span class="p">,</span>
+                <span class="n">json_schema</span><span class="o">=</span><span class="n">schema_str</span><span class="p">,</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameter_desc</span><span class="p">,</span>
+                <span class="n">tools</span><span class="o">=</span><span class="n">tools_descr</span>
+            <span class="p">)</span>
+            <span class="n">prompt</span> <span class="o">=</span> <span class="n">PROMPT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">extra_info</span><span class="o">=</span><span class="n">extra_info</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">sys_prompt</span><span class="p">),</span>
+                <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">prompt</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NERError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to prepare messages for the model. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">error_type</span><span class="o">=</span><span class="s2">&quot;message_preparation&quot;</span><span class="p">,</span>
+                <span class="n">original_error</span><span class="o">=</span><span class="n">e</span>
+            <span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_with_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">tools_manager</span><span class="p">:</span> <span class="n">ToolsManager</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NERResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process using agent with tools. </span>
+
+<span class="sd">        :param messages: The messages to process. Is a list containing system prompt and prompt for the LLM.</span>
+<span class="sd">        :param tools_manager: The tools manager instance.</span>
+<span class="sd">        :return: The result of the processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tools</span> <span class="o">=</span> <span class="n">tools_manager</span><span class="o">.</span><span class="n">get_tools</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tools</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                    <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">error</span><span class="o">=</span><span class="s2">&quot;No tools available for processing.&quot;</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">AGENT_WITH_TOOLS</span>
+                <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initializing agent with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tools</span><span class="p">)</span><span class="si">}</span><span class="s2"> tools: </span><span class="si">{</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">tools</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># TODO: Next step migration to LangGraph, initialize_agent will be deprecated</span>
+            <span class="n">agent</span> <span class="o">=</span> <span class="n">initialize_agent</span><span class="p">(</span>
+                <span class="n">tools</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="n">agent</span><span class="o">=</span><span class="n">AgentType</span><span class="o">.</span><span class="n">OPENAI_FUNCTIONS</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;openai&quot;</span> <span class="k">else</span> <span class="n">AgentType</span><span class="o">.</span><span class="n">ZERO_SHOT_REACT_DESCRIPTION</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">handle_parsing_errors</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+            <span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+            <span class="n">agent_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">agent_output</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">AGENT_WITH_TOOLS</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">LangChainException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LangChain error during agent processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">AGENT_WITH_TOOLS</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error during agent processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">AGENT_WITH_TOOLS</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_direct_structured</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">base_model</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NERResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Process using direct model with structured output.</span>
+
+<span class="sd">        :param messages: The messages to process.</span>
+<span class="sd">        :param base_model: The base model class to use for structured output.</span>
+<span class="sd">        :return: The result of the processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing with direct structured output.&quot;</span><span class="p">)</span>
+            <span class="n">structured_llm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">base_model</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">structured_llm</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                    <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(),</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                    <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">error</span><span class="o">=</span><span class="s2">&quot;No result returned from structured model.&quot;</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error during structured processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Output validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">OpenAIError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OpenAI error during structured processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;OpenAI error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error during structured processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Unexpected error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span>
+            <span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_direct_unstructured</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NERResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Process using direct model call without structured output.</span>
+
+<span class="sd">        :param messages: The messages to process.</span>
+<span class="sd">        :return: The result of the processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing with direct unstructured output.&quot;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">result</span> <span class="ow">and</span> <span class="n">result</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                    <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">content</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_UNSTRUCTURED</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                    <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">error</span><span class="o">=</span><span class="s2">&quot;No content returned from unstructured model.&quot;</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_UNSTRUCTURED</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="n">OpenAIError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OpenAI error during unstructured processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;OpenAI error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_UNSTRUCTURED</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error during unstructured processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Unexpected error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_UNSTRUCTURED</span>
+            <span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_structured_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base_model</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="n">ProcessingMode</span><span class="p">,</span> <span class="n">before_param_filling</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NERResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Validate and parse structured output from the model.</span>
+
+<span class="sd">        :param output: The output string to validate.</span>
+<span class="sd">        :param base_model: The base model class to use for validation.</span>
+<span class="sd">        :param mode: The processing mode.</span>
+<span class="sd">        :return: The result of the validation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">cleaned_output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">cleaned_output</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;```json&#39;</span><span class="p">):</span>
+                    <span class="n">cleaned_output</span> <span class="o">=</span> <span class="n">cleaned_output</span><span class="p">[</span><span class="mi">7</span><span class="p">:]</span>
+                <span class="k">if</span> <span class="n">cleaned_output</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;```&#39;</span><span class="p">):</span>
+                    <span class="n">cleaned_output</span> <span class="o">=</span> <span class="n">cleaned_output</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">cleaned_output</span> <span class="o">=</span> <span class="n">cleaned_output</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">cleaned_output</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to parse JSON response: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                        <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;JSON parsing error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">mode</span><span class="o">=</span><span class="n">mode</span>
+                    <span class="p">)</span>
+                <span class="n">validated_result</span> <span class="o">=</span> <span class="n">base_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">validated_result</span> <span class="o">=</span> <span class="n">base_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">validated_result</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(),</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">mode</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to parse JSON response: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;JSON parsing error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">mode</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">before_param_filling</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Some parameters need filling: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error during structured output processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">json_data</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">output</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">mode</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected error during structured output processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+                <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">error</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Unexpected error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="n">mode</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_dynamic_type_casting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">param</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">tools_manager</span><span class="p">:</span> <span class="n">ToolsManager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamically cast the result to the expected type using the LLM.</span>
+
+<span class="sd">        :param result: The result string to cast.</span>
+<span class="sd">        :param param: The parameter name requested.</span>
+<span class="sd">        :param expected_type: The expected type to cast to.</span>
+<span class="sd">        :return: The casted result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">tools_descr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">tools</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">tools_manager</span> <span class="ow">and</span> <span class="n">tools_manager</span><span class="o">.</span><span class="n">get_tools</span><span class="p">():</span>
+            <span class="n">tools</span> <span class="o">=</span> <span class="n">tools_manager</span><span class="o">.</span><span class="n">get_tools</span><span class="p">()</span>
+            <span class="n">tools_descr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">tool</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">tool</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">)</span>
+
+        <span class="n">prompt</span> <span class="o">=</span> <span class="n">PROMPT_TYPE_CASTING</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="nb">input</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+            <span class="n">param</span><span class="o">=</span><span class="n">param</span><span class="p">,</span>
+            <span class="n">expected_type</span><span class="o">=</span><span class="n">expected_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> 
+            <span class="n">tools</span><span class="o">=</span><span class="n">tools_descr</span> <span class="ow">or</span> <span class="s2">&quot;No tools available&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span>
+        <span class="k">if</span> <span class="n">tools</span><span class="p">:</span>
+            <span class="n">agent</span> <span class="o">=</span> <span class="n">initialize_agent</span><span class="p">(</span>
+                <span class="n">tools</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="n">agent</span><span class="o">=</span><span class="n">AgentType</span><span class="o">.</span><span class="n">OPENAI_FUNCTIONS</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;openai&quot;</span> <span class="k">else</span> <span class="n">AgentType</span><span class="o">.</span><span class="n">ZERO_SHOT_REACT_DESCRIPTION</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">handle_parsing_errors</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_missing_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">NERResult</span><span class="p">,</span> <span class="n">base_model</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">],</span> <span class="n">tools_manager</span><span class="p">:</span> <span class="n">ToolsManager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Get missing parameters from the NER result.</span>
+
+<span class="sd">        :param result: The NER result to check for missing parameters.</span>
+<span class="sd">        :param base_model: The base model class to use for validation.</span>
+<span class="sd">        :param tools_manager: The tools manager to use for retrieving tools.</span>
+<span class="sd">        :return: A list of missing parameter names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">optional_fields</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">base_model</span><span class="o">.</span><span class="n">model_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">field</span><span class="o">.</span><span class="n">is_required</span><span class="p">():</span>
+                <span class="n">optional_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">missing_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">data_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span>        
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">data_dict</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Result data is empty or None, skipping missing params check.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">missing_params</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">optional_fields</span><span class="p">:</span>
+                <span class="n">missing_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing parameters identified: </span><span class="si">{</span><span class="n">missing_params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tools_manager</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">tools_manager</span><span class="o">.</span><span class="n">get_tools</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">missing_params</span>
+        <span class="n">tools_</span> <span class="o">=</span> <span class="n">tools_manager</span><span class="o">.</span><span class="n">get_tools</span><span class="p">()</span>
+        <span class="n">tools_descr</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> - &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Tool Name: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, Description: </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools_</span><span class="p">])</span>
+        <span class="n">prompt</span> <span class="o">=</span> <span class="n">PROMPT_PARAMS_RECOVERY</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">missing_params</span><span class="o">=</span><span class="n">missing_params</span><span class="p">,</span> <span class="n">tools_descr</span><span class="o">=</span><span class="n">tools_descr</span><span class="p">)</span>
+
+        <span class="n">structured_llm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">NERMissingParameters</span><span class="p">)</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">structured_llm</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_structured_output</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">NERMissingParameters</span><span class="p">,</span> <span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span><span class="p">)</span>
+        <span class="n">response_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+            <span class="n">missing_params</span> <span class="o">=</span> <span class="n">response_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;missing_params&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing parameters after tool recovery: </span><span class="si">{</span><span class="n">missing_params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to recover missing parameters: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">response_data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="n">response_data</span>
+        <span class="k">return</span> <span class="n">missing_params</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ask_user_for_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_params</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NERResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Ask user missing parameters.</span>
+
+<span class="sd">        :param missing_params: List of the missing parameters.</span>
+<span class="sd">        :return: The questions for the parameter requests.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">questions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">missing_params</span><span class="p">:</span>
+            <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;parameter&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">param</span><span class="p">},</span> <span class="s2">&quot;question&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Please provide the value for &#39;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+            <span class="n">status</span><span class="o">=</span><span class="s2">&quot;missing_parameter&quot;</span><span class="p">,</span>
+            <span class="n">questions</span><span class="o">=</span><span class="n">questions</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ask_user_for_input_with_llm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">NERResult</span><span class="p">,</span> <span class="n">missing_params</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NERResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ask user missing parameters using LLM.</span>
+
+<span class="sd">        :param result: The result of the NER task.</span>
+<span class="sd">        :param missing_params: List of the missing parameters.</span>
+<span class="sd">        :return: The questions for the parameter requests.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">questions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">missing_params</span><span class="p">:</span>
+            <span class="n">prompt</span> <span class="o">=</span> <span class="n">PROMPT_PARAMETER_ASKING</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_schema</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">missing_parameter</span><span class="o">=</span><span class="n">param</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="p">)</span>
+            <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+            <span class="n">question</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">&#39;content&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
+            <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;parameter&quot;</span><span class="p">:</span> <span class="n">param</span><span class="p">,</span> <span class="s2">&quot;question&quot;</span><span class="p">:</span> <span class="n">question</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span>
+            <span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">status</span><span class="o">=</span><span class="s2">&quot;missing_parameter&quot;</span><span class="p">,</span>
+            <span class="n">questions</span><span class="o">=</span><span class="n">questions</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_post_processing_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">NERResult</span><span class="p">,</span> <span class="n">tools_manager</span><span class="p">:</span> <span class="n">ToolsManager</span><span class="p">,</span> <span class="n">base_model</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">],</span> <span class="n">ask_missing_params_with_llm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NERResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Post-process the NER result to fill in any missing parameters. </span>
+
+<span class="sd">        :param result: The NER result to post-process.</span>
+<span class="sd">        :param tools_manager: The tools manager to use for retrieving tools.</span>
+<span class="sd">        :param base_model: The base model class to use for validation.</span>
+<span class="sd">        :param ask_missing_params_with_llm: If True, the questions are generated by the LLM, otherwise use default questions.</span>
+<span class="sd">        :return: The post-processed NER result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Identify missing parameters</span>
+        <span class="n">missing_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_missing_params</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span> <span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">,</span> <span class="n">tools_manager</span><span class="o">=</span><span class="n">tools_manager</span><span class="p">)</span> <span class="c1"># Get missing parameters that are not possible to retrieve using the given tools.</span>
+        <span class="n">result_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span>
+        
+        <span class="k">if</span> <span class="n">missing_params</span><span class="p">:</span>
+            <span class="n">params_req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ask_user_for_input_with_llm</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span> <span class="n">missing_params</span><span class="o">=</span><span class="n">missing_params</span><span class="p">)</span> <span class="k">if</span> <span class="n">ask_missing_params_with_llm</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ask_user_for_input</span><span class="p">(</span><span class="n">missing_params</span><span class="o">=</span><span class="n">missing_params</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">params_req</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">result_data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_missing_params</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span> <span class="n">tools_manager</span><span class="o">=</span><span class="n">tools_manager</span><span class="p">,</span> <span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Some required parameters are still missing after post-processing.&quot;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_processing_result</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span> <span class="n">tools_manager</span><span class="o">=</span><span class="n">tools_manager</span><span class="p">,</span> <span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">,</span> <span class="n">ask_missing_params_with_llm</span><span class="o">=</span><span class="n">ask_missing_params_with_llm</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="NER.chat">
+<a class="viewcode-back" href="../../ner_module.html#ner_module.llm_client.NER.chat">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">chat</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
+        <span class="n">tasks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
+        <span class="n">base_model</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tools_manager</span><span class="p">:</span> <span class="n">ToolsManager</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">extra_info</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">ask_missing_params_with_llm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">user_inputs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_raw_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Process user text to extract structured information.</span>
+
+<span class="sd">        :param text: Input text to process</span>
+<span class="sd">        :param tasks: List of possible tasks</span>
+<span class="sd">        :param base_model: Pydantic model class to use for structured output</span>
+<span class="sd">        :param tools_manager: Manager for additional tools</span>
+<span class="sd">        :param extra_info: Additional information to include inside the prompt</span>
+<span class="sd">        :param ask_missing_params_with_llm: If True, the questions are generated by the LLM, otherwise use default questions.</span>
+<span class="sd">        :param user_inputs: Dict of answers requested due to missing parameters or additional information.</span>
+<span class="sd">        :param return_raw_result: If True, returns NERResult object instead of just data</span>
+<span class="sd">        :return: Processed result as string/None or NERResult object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Input checking</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="c1"># Handle empty or invalid input text</span>
+                <span class="n">error_result</span> <span class="o">=</span> <span class="n">NERResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s2">&quot;Input text is empty or invalid.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">error_result</span> <span class="k">if</span> <span class="n">return_raw_result</span> <span class="k">else</span> <span class="kc">None</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tasks</span><span class="p">:</span>
+                <span class="c1"># Handle missing tasks</span>
+                <span class="n">error_result</span> <span class="o">=</span> <span class="n">NERResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s2">&quot;No tasks provided for processing.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">error_result</span> <span class="k">if</span> <span class="n">return_raw_result</span> <span class="k">else</span> <span class="kc">None</span>
+
+            <span class="c1"># Detecting text language, in order to ask for missing parameters in the correct language</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="o">=</span> <span class="n">pycountry</span><span class="o">.</span><span class="n">languages</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">alpha_2</span><span class="o">=</span><span class="n">detect</span><span class="p">(</span><span class="n">text</span><span class="p">))</span><span class="o">.</span><span class="n">name</span>
+
+            <span class="c1"># Determining the processing mode:</span>
+            <span class="c1"># 1. Unstructured processing (no BaseModel, no Tools)</span>
+            <span class="c1"># 2. Structured processing (BaseModel present, no Tools), in this case the LLM will generate the JSON schema with consistent constraints</span>
+            <span class="c1"># 3. Agentic processing (Tools present), in this case the LLM will use the tools to fill in the missing parameters (SUGGESTED MODE)</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_processing_mode</span><span class="p">(</span><span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">,</span> <span class="n">tools_manager</span><span class="o">=</span><span class="n">tools_manager</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Determined processing mode: </span><span class="si">{</span><span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Preparing the messages for the LLM. With messages we mean the SYSTEM_MESSAGE and the HUMAN_MESSAGE that will be sent to the model.</span>
+            <span class="c1"># The tool manager is sent to provide the LLM the necessary tools for processing.</span>
+            <span class="c1"># The base model is sent to provide the requested JSON schema.</span>
+            <span class="c1"># Extra info are used to enrich the prompt with context (USE ONLY IF NECESSARY).</span>
+            <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_messages</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">tasks</span><span class="o">=</span><span class="n">tasks</span><span class="p">,</span> <span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">,</span> <span class="n">tools_manager</span><span class="o">=</span><span class="n">tools_manager</span><span class="p">,</span> <span class="n">extra_info</span><span class="o">=</span><span class="n">extra_info</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">ProcessingMode</span><span class="o">.</span><span class="n">AGENT_WITH_TOOLS</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_with_agent</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">tools_manager</span><span class="p">)</span> <span class="c1"># Using agent with tools</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">ProcessingMode</span><span class="o">.</span><span class="n">DIRECT_STRUCTURED</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_direct_structured</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">base_model</span><span class="p">)</span> <span class="c1"># Direct structured processing</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_direct_unstructured</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span> <span class="c1"># Direct unstructured processing</span>
+
+            <span class="k">if</span> <span class="n">user_inputs</span><span class="p">:</span>
+                <span class="n">result_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span>
+                <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">answer</span> <span class="ow">in</span> <span class="n">user_inputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">user_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dynamic_type_casting</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">answer</span><span class="p">,</span> <span class="n">param</span><span class="o">=</span><span class="n">param</span><span class="p">,</span> <span class="n">tools_manager</span><span class="o">=</span><span class="n">tools_manager</span><span class="p">,</span> <span class="n">expected_type</span><span class="o">=</span><span class="n">base_model</span><span class="o">.</span><span class="n">model_fields</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
+                    <span class="n">result_data</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_input</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">result_data</span><span class="p">)</span>
+
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_structured_output</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">before_param_filling</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">base_model</span> <span class="k">else</span> <span class="n">result</span>
+
+            <span class="c1"># Check missing parameters</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_processing_result</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span> <span class="n">tools_manager</span><span class="o">=</span><span class="n">tools_manager</span><span class="p">,</span> <span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">,</span> <span class="n">ask_missing_params_with_llm</span><span class="o">=</span><span class="n">ask_missing_params_with_llm</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;missing_parameter&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span> <span class="k">if</span> <span class="n">return_raw_result</span> <span class="k">else</span> <span class="n">result</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+            <span class="c1"># Validating structured output if base_model is present</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_structured_output</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">base_model</span><span class="o">=</span><span class="n">base_model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span> <span class="k">if</span> <span class="n">base_model</span> <span class="k">else</span> <span class="n">result</span>
+
+            <span class="k">if</span> <span class="n">return_raw_result</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span> <span class="c1"># Return a NERResult object</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span> <span class="k">else</span> <span class="kc">None</span> <span class="c1"># Return structured data if available</span>
+        <span class="k">except</span> <span class="n">NERError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NER processing error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">NERResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span> <span class="k">if</span> <span class="n">return_raw_result</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected error during NER processing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">error_result</span> <span class="o">=</span> <span class="n">NERResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">error_result</span> <span class="k">if</span> <span class="n">return_raw_result</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="NER.detect_multiactivities">
+<a class="viewcode-back" href="../../ner_module.html#ner_module.llm_client.NER.detect_multiactivities">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect_multiactivities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">examples</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;No other examples available&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Detect multiple activities in the text.</span>
+
+<span class="sd">        :param text: The input text to analyze.</span>
+<span class="sd">        :param prompt: The prompt to use for the LLM. Use specific prompt for multi-activity detection only for particular cases, otherwise use the default prompt.</span>
+<span class="sd">        :param examples: Additional examples to provide context for the LLM. Not needed if prompt is provided.</span>
+<span class="sd">        :return: A list of detected activities.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">prompt</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">prompt</span> <span class="o">=</span> <span class="n">PROMPT_MULTIACTIVITY</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="n">examples</span><span class="p">)</span>
+
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span>
+        <span class="n">llm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">MultiActivity</span><span class="p">)</span>
+        
+        <span class="n">response</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">activities</span></div>
+
+
+<div class="viewcode-block" id="NER.base_model_selector">
+<a class="viewcode-back" href="../../ner_module.html#ner_module.llm_client.NER.base_model_selector">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">base_model_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_models</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]],</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a set of BaseModel, select the most appropriate one based on the input text.</span>
+
+<span class="sd">        :param base_models: A list of BaseModel classes to choose from.</span>
+<span class="sd">        :param text: The input text to analyze.</span>
+<span class="sd">        :return: The most appropriate BaseModel class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">base_model</span><span class="o">.</span><span class="n">model_json_schema</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">base_model</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">base_models</span><span class="p">))</span>
+
+        <span class="n">prompt</span> <span class="o">=</span> <span class="n">PROMPT_BASE_MODEL_SELECTOR</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_models</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">BaseModelSelector</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base_models</span><span class="p">[</span><span class="n">response</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="NER.set_model_params">
+<a class="viewcode-back" href="../../ner_module.html#ner_module.llm_client.NER.set_model_params">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_model_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">PROVIDER</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">MODEL_NAME</span><span class="p">,</span> <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">TEMPERATURE</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the model parameters for the NER instance.</span>
+
+<span class="sd">        :param model_name: The name of the model to use.</span>
+<span class="sd">        :param temperature: The temperature to use for sampling.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">=</span> <span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">if</span> <span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_allowed_providers</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;openai&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">temperature</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_model</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model parameters set: provider=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="si">}</span><span class="s2">, model_name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2">, temperature=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NERError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to set model parameters: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">error_type</span><span class="o">=</span><span class="s2">&quot;parameter_setting&quot;</span><span class="p">,</span>
+                <span class="n">original_error</span><span class="o">=</span><span class="n">e</span>
+            <span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="NER.get_model_params">
+<a class="viewcode-back" href="../../ner_module.html#ner_module.llm_client.NER.get_model_params">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_model_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the current model parameters.</span>
+
+<span class="sd">        :return: A dictionary containing the model name and temperature.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;provider&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="p">,</span>
+            <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+            <span class="s2">&quot;api_key_set&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="NER.health_check">
+<a class="viewcode-back" href="../../ner_module.html#ner_module.llm_client.NER.health_check">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs a health check of the NER system.</span>
+
+<span class="sd">        :return: A dictionary containing the health check results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">test_messages</span> <span class="o">=</span> <span class="p">[</span><span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;Test message for health check.&quot;</span><span class="p">)]</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">test_messages</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span>
+            <span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Health check failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;unhealthy&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+                <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span>
+            <span class="p">}</span></div>
+
+            
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;NER(provider=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="si">}</span><span class="s2">, model_name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2">, temperature=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Eddy Frighetto.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
